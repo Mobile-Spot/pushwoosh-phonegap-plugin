@@ -3,12 +3,14 @@ package com.pushwoosh.plugin.pushnotifications;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 
+import com.mobilespot.NotificationManager;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.NotificationServiceExtension;
 import com.pushwoosh.notification.PushMessage;
 
 public class PushwooshNotificationServiceExtension extends NotificationServiceExtension {
 	private boolean showForegroundPush;
+    private static final boolean USE_NOTIFICATION_MANAGER = true;
 
 	public PushwooshNotificationServiceExtension() {
 		try {
@@ -27,6 +29,13 @@ public class PushwooshNotificationServiceExtension extends NotificationServiceEx
 
 	@Override
 	protected boolean onMessageReceived(final PushMessage pushMessage) {
+
+        if ( USE_NOTIFICATION_MANAGER ) {
+            NotificationManager nm = NotificationManager.getInstance( getApplicationContext() );
+            nm.onNotification( "push", pushMessage.toJson().toString() );
+            return true;
+        }
+
 		PushNotifications.messageReceived(pushMessage.toJson().toString());
 		return (!showForegroundPush && isAppOnForeground()) || super.onMessageReceived(pushMessage);
 	}

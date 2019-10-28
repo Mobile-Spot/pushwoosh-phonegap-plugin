@@ -23,6 +23,8 @@
 
 #import <objc/runtime.h>
 
+#import "NotificationManager.h"
+#define USE_NOTIFICATION_MANAGER true
 
 #define WRITEJS(VAL) [NSString stringWithFormat:@"setTimeout(function() { %@; }, 0);", VAL]
 
@@ -143,8 +145,17 @@ static PushNotification *pw_PushNotificationPlugin;
 	
 	if (self.pushManager.launchNotification) {
         NSDictionary *notification = [self createNotificationDataForPush:self.pushManager.launchNotification onStart:YES];
-        [self dispatchPushReceive:notification];
-        [self dispatchPushAccept:notification];
+
+        if ( USE_NOTIFICATION_MANAGER ) {
+            NotificationManagerObject* nm = [NotificationManagerObject getInstance];
+
+            // Manage notification using NotificationManagerObject
+            [nm onPushNotification: notification];
+
+        } else {
+            [self dispatchPushReceive:notification];
+            [self dispatchPushAccept:notification];
+        }
 	}
 
 	[[NSUserDefaults standardUserDefaults] synchronize];
@@ -341,7 +352,14 @@ static PushNotification *pw_PushNotificationPlugin;
     if (_deviceReady) {
         NSDictionary *notification = [self createNotificationDataForPush:pushNotification onStart:onStart];
         //send it to the webview
-        [self dispatchPushReceive:notification];
+        if ( USE_NOTIFICATION_MANAGER ) {
+            NotificationManagerObject* nm = [NotificationManagerObject getInstance];
+
+            // Manage notification using NotificationManagerObject
+            [nm onPushNotification: notification];
+        } else {
+            [self dispatchPushReceive:notification];
+        }
     }
 }
 
